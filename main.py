@@ -24,4 +24,4 @@ headers = {
         'systemofcall': 'workaroundscr'
     }
 
-restclientutility.callrestendpoint("PUT", "http://localhost:8080/api/bycount/2000", None, headers)
+restclientutility.callrestendpoint("GET", "https://localhost:8080/uaa/user", None, headers)

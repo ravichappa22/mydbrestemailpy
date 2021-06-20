@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import smtplib
+import os
 
 from email.message import EmailMessage
 
@@ -10,12 +11,12 @@ def emailutility(messageBody):
 
     # me == the sender's email address
     # you == the recipient's email address
-    msg['Subject'] = 'TEST email'
-    msg['From'] = 'ravi_chappa@uhc.com'
-    msg['To'] = 'ravi_chappa@uhc.com'
+    msg['Subject'] = 'TEST SCR'
+    msg['From'] = os.getenv("EMAIL_FROM")
+    msg['To'] = os.getenv("EMAIL_TO")
     msg.set_content(messageBody)
 
     # Send the message via our own SMTP server.
-    s = smtplib.SMTP('mailo2.uhc.com')
+    s = smtplib.SMTP(os.getenv("SMTP_HOST"))
     s.send_message(msg)
     s.quit()
