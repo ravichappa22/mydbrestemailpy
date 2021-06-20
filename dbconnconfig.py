@@ -13,7 +13,7 @@ print(username)
 print(password)
 print(dsn)
 
-cx_Oracle.init_oracle_client(lib_dir="instantclient_19_8")
+cx_Oracle.init_oracle_client(lib_dir="/Users/rchappa1/Documents/Softwares/instantclient_19_8")
 
 connection = cx_Oracle.connect(username,password,dsn)
 print("connection made successfully")

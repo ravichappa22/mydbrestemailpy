@@ -2,10 +2,11 @@
 
 import email_sender
 import dbconnconfig
+import restclientutility
 
 cursor = dbconnconfig.connection.cursor()
 
-queryFile = open("claimsFile", 'r')
+queryFile = open("queryfile", 'r')
 queryString = queryFile.read()
 queryFile.close()
 
@@ -17,3 +18,10 @@ claimsSuspended = claimsSuspended.split(",")
 print(str(claimsSuspended))
 
 email_sender.emailutility(str(claimsSuspended))
+
+headers = {
+        'RequestCorrelationId': '123345566891_SCR_TEST',
+        'systemofcall': 'workaroundscr'
+    }
+
+restclientutility.callrestendpoint("PUT", "http://localhost:8080/api/bycount/2000", None, headers)

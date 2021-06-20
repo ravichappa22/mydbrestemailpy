@@ -1,8 +1,6 @@
 import restoauthclient
 import requests
 
-
-
 def callrestendpoint(reqmethod, urltocall, data, headers):
     response = ""
     if reqmethod == "GET":
@@ -12,9 +10,18 @@ def callrestendpoint(reqmethod, urltocall, data, headers):
         print("POST")
     elif reqmethod == "PUT":
         print("PUT")
-        response = requests.put(urltocall, data=data, headers=headers)
-        print(response)
+        access_token = restoauthclient.preparetoken()
 
-callrestendpoint("PUT", "http://localhost:8080/api/bycount/2000", None, None)
+        finalheaders = {
+        'Authorization': "Bearer " + str(access_token),
+        'Content-Type': 'application/json'
+    }
+        finalheaders.update(headers)
+
+        response = requests.put(urltocall, data=data, headers=finalheaders)
+        print(response)
+        return response
+
+
 
 

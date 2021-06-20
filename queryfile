@@ -1,0 +1,110 @@
+
+--=====================================================================================================================================================================
+-- CHECK IF THE OPREC AND CLM_HIST TABLE ENTRIES HAVE DIFFERENT PROVIVER KEYS.
+-- IDEALLY, THIS SHOULD NOT HAPPEN, AND WILL POTENTILALLY CAUSE FAILURES IN CL348, CL315
+-- immediate action - to flop the status , i,e do the same day suspension logic that flips. so they won't go to post Adjudication- rest entrypoint
+--=====================================================================================================================================================================
+SELECT ROWNUM,CLM_NUM FROM
+(SELECT CH.CLM_NUM
+FROM FOX_APP.OPREC OP
+    ,FOX_APP.CLM_HIST CH
+WHERE OP.CLM_NBR = CH.CLM_NUM
+AND   ch.assgn_prv_key <> op.asgn_prov_key
+and   OP.CLM_STS = 'D'
+
+
+UNION
+--=====================================================================================================================================================================
+-- CHECK IF THERE ARE DUPLICATE ENTRIES IN OPREC TABLE FOR THE SAME CLAIM NO
+-- WE HAD SEEN THESE ISSUES IN LOWER ENV ESPECIALLY WHEN SUSPENDED/QR CLAIMS WERE DISBURSED. THOSE DEFECTS WERE RESOLVED NOW.
+--=====================================================================================================================================================================
+SELECT CLM_NBR
+FROM FOX_APP.OPREC
+GROUP BY CLM_NBR
+HAVING COUNT(*) >= 2
+
+UNION
+--=====================================================================================================================================================================
+-- CHECK IF THERE ARE CLAIMS THAT DO NOT HAVE BILL LINES (WE SHOULD NOT)
+-- WE HAD SEEN THIS ISSUE WITH MANUAL ADJUDICATION CLAIMS IN LOWER ENVS - WHEN WE HAVE 500 ERRORS WHILE PERSISTING CLM HISTORY
+--=====================================================================================================================================================================
+
+select OP.clm_nbr
+from fox_app.OPREC OP
+    ,fox_app.clm_hist ch
+where OP.CLM_NBR= CH.CLM_NUM
+and   CH.CLM_STAT = 'D'
+and not exists
+(
+ select 1
+ from fox_app.bil_ln_hist2 BH
+ where bh.ch_key = ch.ch_key
+)
+
+UNION
+
+--=====================================================================================================================================================================
+-- CHECK IF THERE ARE CLAIMS HAVE BILL LINES WITHOUT SRV_CD, TYP_CD, OR PLN_CD
+--
+--=====================================================================================================================================================================
+
+select OP.clm_nbr
+from fox_app.OPREC OP
+    ,fox_app.clm_hist ch
+    ,fox_app.BIL_LN_HIST2 BH
+
+where OP.CLM_NBR  = CH.CLM_NUM
+and   CH.CLM_STAT = 'D'
+AND   CH.CH_KEY   = BH.CH_KEY
+and  (BH.SRV_CD IS NULL OR BH.TYP_CD IS NULL OR (BH.PLN_CD IS NULL AND SRV_CD <> 'Y') )
+
+--=====================================================================================================================================================================
+-- CHECK IF THERE ARE OPREC TABLE WITHOUT CORRESPONDING CLM_HIST ENTRIES
+-- YOU MAT NOT SEE THIS IN PROD.
+-- If we have such entries, that is not necessarily a defect, but rather a gap in data reset. Most likely, Claim delete utility did not delete entries from
+-- OPREC table when deleting the claim history. These records are useless, and must be removed.
+-- OPRECSORTJOB has a threshold where if there are more than 1000 (i think) such entries, the job will fail.
+--=====================================================================================================================================================================
+UNION
+
+
+select OT.CLM_NBR from fox_app.OPREC OT
+where not exists
+(
+  SELECT 1
+  FROM FOX_APP.CLM_HIST CH
+  where CH.CLM_NUM = OT.CLM_NBR
+)
+
+--=====================================================================================================================================================================
+-- CHECK IF THE CLAIM STATUS ON OPREC DOES NOT MATCH CLAIM STATUS ON CLM_HIST.
+-- THIS SHOULD NOT HAPPEN AS WELL.
+--=====================================================================================================================================================================
+UNION
+
+SELECT ch.CLM_NUM
+FROM FOX_APP.CLM_HIST CH,
+     FOX_APP.OPREC OP
+WHERE OP.CLM_NBR = CH.CLM_NUM
+AND   OP.CLM_STS <> CH.CLM_STAT
+
+--=====================================================================================================================================================================
+-- CHECK IF THERE ARE DISBURESED CLAIMS WITHOUT LEGAL ENTITY ON OPREC. THIS WILL DEFINITELY CAUSE POST ADJ FAILURES.
+-- WE HAVE SEVERAL INSTANCES AND LOGGED SEVERAL DEFECTS BUT NOT SURE IF THIS HAS BEEN COMPREHENSIVELY ADDRESSED.
+--=====================================================================================================================================================================
+UNION
+
+SELECT OT.CLM_NBR FROM FOX_APP.OPREC OT WHERE CLM_STS = 'D' AND LGL_ENTY IS NULL
+
+--=====================================================================================================================================================================
+-- CHECK IF THERE ARE DISBURESED CLAIMS WITHOUT DT_CMPL ON OPREC.
+-- THIS WILL DEFINITELY CAUSE POST ADJ FAILURES.
+--=====================================================================================================================================================================
+UNION
+
+SELECT OT.CLM_NBR FROM FOX_APP.OPREC OT WHERE CLM_STS = 'D' AND DT_CMPL IS NULL
+
+UNION
+
+SELECT OT.CLM_NBR FROM FOX_APP.OPREC OT, FOX_APP.CLM_HIST Ch where Ch.CLM_NUM = OT.CLM_NBR  AND OT.CLM_STS = 'D'
+AND ch.eob_typ NOT IN ('0','1','2','3','4','5','6','7','8','9')) WHERE ROWNUM <= 100
