@@ -1,7 +1,7 @@
 import restoauthclient
 import requests
 
-def callrestendpoint(reqmethod, urltocall, data, headers):
+def callrestendpoint(reqmethod, urltocall, data, headers, parameters):
     response = ""
     access_token = restoauthclient.preparetoken()
     finalheaders = {
@@ -12,17 +12,13 @@ def callrestendpoint(reqmethod, urltocall, data, headers):
 
     if reqmethod == "GET":
         print("GET for " + reqmethod)
-        response = requests.get(urltocall, data=data, headers=finalheaders, verify=False)
+        response = requests.get(urltocall, data=data, headers=finalheaders, params=parameters, verify=False)
     elif reqmethod == "POST":
         print("POST")
-        response = requests.post(urltocall, data=data, headers=finalheaders, verify=False)
+        response = requests.post(urltocall, data=data, headers=finalheaders, params=parameters, verify=False)
     elif reqmethod == "PUT":
         print("PUT")
-        response = requests.put(urltocall, data=data, headers=finalheaders, verify=False)
+        response = requests.put(urltocall, data=data, headers=finalheaders, params=parameters, verify=False)
 
     print("status code = " + str(response.status_code) + " response body = " + str(response.text))
     return response
-
-
-
-
