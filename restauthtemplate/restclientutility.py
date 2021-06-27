@@ -1,4 +1,4 @@
-import restoauthclient
+from restauthtemplate import restoauthclient
 import requests
 
 def callrestendpoint(reqmethod, urltocall, data, headers, parameters):

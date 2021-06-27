@@ -19,4 +19,5 @@ def emailutility(messageBody):
     # Send the message via our own SMTP server.
     s = smtplib.SMTP(os.getenv("SMTP_HOST"))
     s.send_message(msg)
+    print("email sent successfully")
     s.quit()

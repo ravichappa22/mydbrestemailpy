@@ -4,7 +4,7 @@
 -- IDEALLY, THIS SHOULD NOT HAPPEN, AND WILL POTENTILALLY CAUSE FAILURES IN CL348, CL315
 -- immediate action - to flop the status , i,e do the same day suspension logic that flips. so they won't go to post Adjudication- rest entrypoint
 --=====================================================================================================================================================================
-SELECT ROWNUM,CLM_NUM FROM
+SELECT CLM_NUM FROM
 (SELECT CH.CLM_NUM
 FROM FOX_APP.OPREC OP
     ,FOX_APP.CLM_HIST CH
