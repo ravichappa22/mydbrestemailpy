@@ -11,7 +11,7 @@ from restauthtemplate import restclientutility
 
 cursor = dbconnconfig.connection.cursor()
 
-queryFile = open("../queryfile", 'r')
+queryFile = open("queryfile", 'r')
 query = queryFile.read()
 queryFile.close()
 
